@@ -1,0 +1,100 @@
+!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teranga Services</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Arial,sans-serif;margin:0;background:#f4f6f5;color:#222}
+  header{background:#0a8f4d;color:#fff;padding:28px 16px;text-align:center}
+  header h1{margin:0;font-size:28px}
+  header p{margin:6px 0 16px}
+  #recherche{width:100%;max-width:420px;padding:12px;border:none;border-radius:8px;font-size:16px}
+  .filtres{display:flex;gap:8px;overflow-x:auto;padding:12px 16px}
+  .filtres button{border:none;background:#fff;padding:8px 14px;border-radius:20px;font-size:14px;white-space:nowrap;cursor:pointer;box-shadow:0 1px 3px #0002}
+  .filtres button.actif{background:#0a8f4d;color:#fff}
+  main{padding:0 16px 20px;max-width:600px;margin:auto}
+  .carte{background:#fff;padding:14px;border-radius:12px;margin-bottom:12px;box-shadow:0 1px 4px #0001}
+  .carte h3{margin:0 0 4px}
+  .carte small{color:#666}
+  .tag{display:inline-block;background:#e6f4ec;color:#0a8f4d;font-size:12px;padding:3px 8px;border-radius:10px;margin-bottom:6px}
+  .carte a{display:block;margin-top:10px;background:#25d366;color:#fff;text-align:center;padding:10px;border-radius:8px;text-decoration:none;font-weight:bold}
+  .pro{background:#fff7e0;padding:16px;border-radius:12px;text-align:center;margin:20px 0}
+  .pro a{display:inline-block;margin-top:8px;background:#0a8f4d;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none}
+  footer{text-align:center;padding:16px;color:#777;font-size:13px}
+  #vide{display:none;text-align:center;color:#777}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌍 Teranga Services</h1>
+  <p>Trouve un professionnel de confiance près de toi</p>
+  <input id="recherche" type="text" placeholder="Rechercher (ex : coiffeur, Dakar...)">
+</header>
+
+<div class="filtres" id="filtres">
+  <button class="actif" data-cat="tous">Tous</button>
+  <button data-cat="Coiffeur">💈 Coiffeurs</button>
+  <button data-cat="Mécanicien">🔧 Mécaniciens</button>
+  <button data-cat="Couturier">🧵 Couturiers</button>
+  <button data-cat="Plombier">🚰 Plombiers</button>
+</div>
+
+<main>
+  <div id="liste"></div>
+  <p id="vide">Aucun résultat trouvé.</p>
+
+  <div class="pro">
+    <b>Tu es professionnel ?</b><br>
+    Inscris-toi pour apparaître dans l'annuaire.<br>
+    <a href="https://wa.me/221770000000?text=Bonjour, je veux m'inscrire sur Teranga Services">S'inscrire par WhatsApp</a>
+  </div>
+</main>
+
+<footer>© Teranga Services</footer>
+
+<script>
+  // Pour ajouter un professionnel, copie une ligne et change les infos
+  const pros = [
+    {nom:"Nom du coiffeur", cat:"Coiffeur", ville:"Dakar", tel:"221770000000"},
+    {nom:"Nom du mécanicien", cat:"Mécanicien", ville:"Thiès", tel:"221770000000"},
+    {nom:"Nom du couturier", cat:"Couturier", ville:"Dakar", tel:"221770000000"},
+    {nom:"Nom du plombier", cat:"Plombier", ville:"Saint-Louis", tel:"221770000000"}
+  ];
+
+  let categorie = "tous";
+  const liste = document.getElementById("liste");
+  const vide = document.getElementById("vide");
+  const recherche = document.getElementById("recherche");
+
+  function afficher(){
+    const texte = recherche.value.toLowerCase();
+    const resultats = pros.filter(p =>
+      (categorie === "tous" || p.cat === categorie) &&
+      (p.nom + p.cat + p.ville).toLowerCase().includes(texte)
+    );
+    liste.innerHTML = resultats.map(p => `
+      <div class="carte">
+        <span class="tag">${p.cat}</span>
+        <h3>${p.nom}</h3>
+        <small>📍 ${p.ville}</small>
+        <a href="https://wa.me/${p.tel}?text=Bonjour, je vous ai trouvé sur Teranga Services">Contacter sur WhatsApp</a>
+      </div>`).join("");
+    vide.style.display = resultats.length ? "none" : "block";
+  }
+
+  document.querySelectorAll("#filtres button").forEach(b => {
+    b.onclick = () => {
+      document.querySelector("#filtres .actif").classList.remove("actif");
+      b.classList.add("actif");
+      categorie = b.dataset.cat;
+      afficher();
+    };
+  });
+  recherche.oninput = afficher;
+  afficher();
+</script>
+</body>
+</html>
