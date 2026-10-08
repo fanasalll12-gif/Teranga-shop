@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taqtaq - Glaces, Sandwichs & Burgers</title>
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Arial,sans-serif;background:#fff8f0;color:#2b2118;padding-bottom:90px}
+  .hero{min-height:300px;background:linear-gradient(#0006,#000b),url("https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900") center/cover #e4572e;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px}
+  .hero h1{font-size:44px;letter-spacing:2px}
+  .hero p{margin-top:8px;font-size:17px}
+  .hero a{margin-top:18px;background:#e4572e;color:#fff;padding:12px 24px;border-radius:30px;text-decoration:none;font-weight:bold}
+  .infos{display:flex;flex-direction:column;gap:6px;background:#2b2118;color:#fff;padding:14px;font-size:14px;text-align:center}
+  .infos a{color:#ffb88c}
+  .cats{display:flex;gap:8px;overflow-x:auto;padding:16px;position:sticky;top:0;background:#fff8f0;z-index:5}
+  .cats button{border:none;background:#fff;padding:9px 16px;border-radius:20px;font-size:14px;white-space:nowrap;box-shadow:0 1px 3px #0003}
+  .cats button.actif{background:#e4572e;color:#fff}
+  .grille{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px 16px;max-width:700px;margin:auto}
+  .produit{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 6px #0002;display:flex;flex-direction:column}
+  .photo{position:relative;height:130px;background:linear-gradient(135deg,#ffb88c,#e4572e);display:flex;align-items:center;justify-content:center;font-size:48px}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .corps{padding:10px;display:flex;flex-direction:column;flex:1}
+  .corps h3{font-size:15px}
+  .corps p{font-size:12px;color:#7a6a5c;margin:4px 0;flex:1}
+  .prix{color:#e4572e;font-weight:bold;margin-bottom:8px}
+  .qte{display:flex;align-items:center;justify-content:space-between}
+  .qte button{width:34px;height:34px;border:none;border-radius:50%;background:#e4572e;color:#fff;font-size:20px}
+  .ajout{width:100%;border:none;background:#e4572e;color:#fff;padding:10px;border-radius:8px;font-weight:bold}
+  #barre{position:fixed;bottom:0;left:0;right:0;background:#2b2118;padding:12px;display:none;z-index:10}
+  #barre button{width:100%;border:none;background:#e4572e;color:#fff;padding:14px;border-radius:10px;font-size:16px;font-weight:bold}
+  #panier{position:fixed;inset:0;background:#000a;display:none;z-index:20;align-items:flex-end}
+  #panier .contenu{background:#fff;width:100%;max-height:85vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+  .ligne{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-size:15px}
+  .total{font-size:20px;font-weight:bold;margin:14px 0;text-align:right}
+  #panier input{width:100%;padding:12px;margin-bottom:8px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+  .envoyer{display:block;width:100%;background:#25d366;color:#fff;border:none;padding:14px;border-radius:10px;font-size:16px;font-weight:bold}
+  .fermer{background:none;border:none;color:#7a6a5c;width:100%;padding:12px;font-size:15px}
+  footer{text-align:center;padding:20px;color:#7a6a5c;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1 id="h-nom"></h1>
+  <p id="h-slogan"></p>
+  <a href="#menu">Voir le menu</a>
+</div>
+
+<div class="infos">
+  <div id="i-adresse"></div>
+  <div id="i-horaires"></div>
+  <div>📱 Commande par WhatsApp</div>
+  <a id="i-maps" target="_blank">🧭 Voir l'itinéraire</a>
+</div>
+
+<div class="cats" id="cats"></div>
+<div class="grille" id="menu"></div>
+
+<div id="barre"><button onclick="ouvrir()"></button></div>
+
+<div id="panier">
+  <div class="contenu">
+    <h2>🛒 Mon panier</h2>
+    <div id="lignes"></div>
+    <div class="total" id="total"></div>
+    <input id="nom" placeholder="Ton nom">
+    <input id="adresse" placeholder="Ton quartier / adresse (ou « sur place »)">
+    <button class="envoyer" onclick="commander()">Commander sur WhatsApp</button>
+    <button class="fermer" onclick="fermer()">Continuer mes achats</button>
+  </div>
+</div>
+
+<footer id="pied"></footer>
+
+<script>
+  // ===== À MODIFIER ICI =====
+  const CONFIG = {
+    nom: "TAQTAQ",
+    slogan: "Glaces • Sandwichs • Burgers",
+    adresse: "Quartier, Dakar",          // ← mets l'adresse exacte du restaurant
+    horaires: "Tous les jours 10h - 23h", // ← mets les vrais horaires
+    whatsapp: "221706763701"             // ← numéro qui reçoit les commandes (221 + numéro)
+  };
+
+  // Chaque produit : "photo" = ta photo envoyée sur GitHub (ex: burger.jpg)
+  // "secours" = photo d'exemple utilisée si ta photo n'existe pas
+  const produits = [
+    {id:1, cat:"Glaces", nom:"Cornet vanille-chocolat", desc:"Deux boules, cornet croustillant", prix:1000, emoji:"🍦", photo:"cornet.jpg", secours:"https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=500"},
+    {id:2, cat:"Glaces", nom:"Coupe glacée fruits", desc:"Glace, fruits frais et chantilly", prix:2500, emoji:"🍨", photo:"coupe.jpg", secours:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500"},
+    {id:3, cat:"Glaces", nom:"Milkshake fraise", desc:"Frais et onctueux", prix:2000, emoji:"🥤", photo:"milkshake.jpg", secours:"https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500"},
+    {id:4, cat:"Sandwichs", nom:"Sandwich poulet", desc:"Poulet, crudités, sauce maison", prix:2000, emoji:"🥪", photo:"sandwich-poulet.jpg", secours:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500"},
+    {id:5, cat:"Sandwichs", nom:"Sandwich thon", desc:"Thon, oeuf, salade, tomate", prix:1500, emoji:"🥖", photo:"sandwich-thon.jpg", secours:"https://images.unsplash.com/photo-1509722747041-616f39b57569?w=500"},
+    {id:6, cat:"Sandwichs", nom:"Chawarma", desc:"Viande grillée, sauce blanche", prix:2500, emoji:"🌯", photo:"chawarma.jpg", secours:"https://images.unsplash.com/photo-1561651823-34feb02250e4?w=500"},
+    {id:7, cat:"Burgers", nom:"Burger classique", desc:"Boeuf, salade, tomate, fromage", prix:3000, emoji:"🍔", photo:"burger.jpg", secours:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500"},
+    {id:8, cat:"Burgers", nom:"Double cheese", desc:"Deux steaks, double fromage", prix:4500, emoji:"🍔", photo:"double-cheese.jpg", secours:"https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500"},
+    {id:9, cat:"Burgers", nom:"Burger poulet croustillant", desc:"Poulet pané, sauce spéciale", prix:3500, emoji:"🍗", photo:"burger-poulet.jpg", secours:"https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=500"},
+    {id:10, cat:"Extras", nom:"Frites", desc:"Portion généreuse", prix:1000, emoji:"🍟", photo:"frites.jpg", secours:"https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500"},
+    {id:11, cat:"Extras", nom:"Jus de bissap", desc:"Fait maison, bien frais", prix:500, emoji:"🍹", photo:"bissap.jpg", secours:"https://images.unsplash.com/photo-1544145945-f90425340c7e?w=500"},
+    {id:12, cat:"Extras", nom:"Jus de gingembre", desc:"Fait maison, bien frais", prix:500, emoji:"🧃", photo:"gingembre.jpg", secours:"https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=500"}
+  ];
+  // ===== FIN DE LA PARTIE À MODIFIER =====
+
+  const categories = ["Tous","Glaces","Sandwichs","Burgers","Extras"];
+  let categorie = "Tous";
+  let panier = {};
+  const fmt = n => n.toLocaleString("fr-FR") + " FCFA";
+
+  document.title = CONFIG.nom + " - " + CONFIG.slogan;
+  document.getElementById("h-nom").textContent = CONFIG.nom;
+  document.getElementById("h-slogan").textContent = CONFIG.slogan;
+  document.getElementById("i-adresse").textContent = "📍 " + CONFIG.adresse;
+  document.getElementById("i-horaires").textContent = "🕐 " + CONFIG.horaires;
+  document.getElementById("i-maps").href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(CONFIG.nom + " " + CONFIG.adresse);
+  document.getElementById("pied").textContent = "© " + CONFIG.nom + " • Site créé par Thierno";
+
+  function photoErreur(img){
+    if(img.dataset.s && !img.dataset.t){ img.dataset.t = 1; img.src = img.dataset.s; }
+    else { img.style.display = "none"; }
+  }
+
+  function afficherCats(){
+    document.getElementById("cats").innerHTML = categories.map(c =>
+      `<button class="${c===categorie?'actif':''}" onclick="choisirCat('${c}')">${c}</button>`).join("");
+  }
+  function choisirCat(c){ categorie = c; afficherCats(); afficherMenu(); }
+
+  function afficherMenu(){
+    const liste = produits.filter(p => categorie==="Tous" || p.cat===categorie);
+    document.getElementById("menu").innerHTML = liste.map(p => {
+      const q = panier[p.id] || 0;
+      const bouton = q === 0
+        ? `<button class="ajout" onclick="changer(${p.id},1)">Ajouter</button>`
+        : `<div class="qte"><button onclick="changer(${p.id},-1)">−</button><b>${q}</b><button onclick="changer(${p.id},1)">+</button></div>`;
+      return `<div class="produit">
+        <div class="photo">${p.emoji}<img src="${p.photo}" data-s="${p.secours}" alt="${p.nom}" onerror="photoErreur(this)"></div>
+        <div class="corps"><h3>${p.nom}</h3><p>${p.desc}</p><div class="prix">${fmt(p.prix)}</div>${bouton}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function changer(id, delta){
+    panier[id] = Math.max(0, (panier[id]||0) + delta);
+    if(panier[id] === 0) delete panier[id];
+    afficherMenu(); majBarre(); majPanier();
+  }
+
+  function totaux(){
+    let n = 0, t = 0;
+    for(const id in panier){
+      const p = produits.find(x => x.id == id);
+      n += panier[id]; t += panier[id] * p.prix;
+    }
+    return {n, t};
+  }
+
+  function majBarre(){
+    const {n, t} = totaux();
+    const barre = document.getElementById("barre");
+    barre.style.display = n ? "block" : "none";
+    barre.querySelector("button").textContent = `🛒 Voir mon panier (${n}) • ${fmt(t)}`;
+  }
+
+  function majPanier(){
+    const {t} = totaux();
+    document.getElementById("lignes").innerHTML = Object.keys(panier).map(id => {
+      const p = produits.find(x => x.id == id);
+      return `<div class="ligne"><span>${panier[id]} × ${p.nom}</span><b>${fmt(panier[id]*p.prix)}</b></div>`;
+    }).join("");
+    document.getElementById("total").textContent = "Total : " + fmt(t);
+    if(!Object.keys(panier).length) fermer();
+  }
+
+  function ouvrir(){ document.getElementById("panier").style.display = "flex"; }
+  function fermer(){ document.getElementById("panier").style.display = "none"; }
+
+  function commander(){
+    const {t} = totaux();
+    let msg = "Bonjour " + CONFIG.nom + ", je voudrais commander :\n";
+    for(const id in panier){
+      const p = produits.find(x => x.id == id);
+      msg += `- ${panier[id]} × ${p.nom} = ${fmt(panier[id]*p.prix)}\n`;
+    }
+    msg += `\nTotal : ${fmt(t)}`;
+    const nom = document.getElementById("nom").value.trim();
+    const adresse = document.getElementById("adresse").value.trim();
+    if(nom) msg += `\nNom : ${nom}`;
+    if(adresse) msg += `\nAdresse : ${adresse}`;
+    window.location.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg);
+  }
+
+  afficherCats(); afficherMenu();
+</script>
+</body>
+</html>
